@@ -1,0 +1,88 @@
+#+TITLE: Using the REST API to See Data from Elasticsearch
+#+AUTHOR: Andrew Caird
+#+EMAIL: acaird@umich.edu
+#+OPTIONS: ':t H:3 \n:nil ^:{} author:t toc:nil
+#+CREATOR: Emacs 24.3.1 (Org mode 8.2.7b)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+#+BEGIN_HTML
+---
+layout: page
+title: Using the REST API to See Data from Elasticsearch
+---
+#+END_HTML
+
+ElasticSearch has a rich REST interface that supports queries on date
+ranges, terms, and aggregations. The programming interface for
+custom queries or output is straight-forward.
+
+The query below asks for the top 10 commands run (these are the ~comm~
+field in Elasticsearch; looking at the details of the Kibana screens
+will show all of the fields available), the top 5 users of each
+command (in the ~username~ field), the total number of times that
+command has been run (in the ~doc_count~ field that is included in the
+output by default) and the total number of unique users to have run
+this particular executable (in the ~top_users~ aggregation that
+applies "cardinality" (uniqueness) to the field ~username~.
+
+#+BEGIN_SRC
+curl -XGET 'http://localhost:9200/\
+  flux-software-*/_search?pretty' -d '{
+ "aggs": {
+  "comm_users": {
+   "terms": {
+    "field": "comm",
+    "size": 10,
+    "order": { "top_users" : "desc" }
+   },
+   "aggs": {
+    "top_users": {
+     "cardinality": {
+      "field": "username"
+     }
+    },
+    "users": {
+     "terms": {
+      "field": "username",
+      "size": 5
+     }
+    }
+   }
+  }
+ }
+}'
+#+END_SRC
+
+#+BEGIN_SRC JSON
+ "key" : "matlab",
+ "doc_count" : 16301,
+ "users" : {
+   "buckets" : [ {
+     "key" : "RedactedUser01",
+     "doc_count" : 3491
+   }, {
+     "key" : "RedactedUser02",
+     "doc_count" : 3330
+   }, {
+     "key" : "RedactedUser03",
+     "doc_count" : 966
+   }, {
+     "key" : "RedactedUser04",
+     "doc_count" : 669
+   }, {
+     "key" : "RedactedUser05",
+     "doc_count" : 651
+   } ]
+ },
+ "top_users" : {
+   "value" : 78
+ }
+#+END_SRC
+
+* Local Dictionary 						   :noexport:
+#  LocalWords:  Elasticsearch Logstash username Lucene Kibana Redis
+#  LocalWords:  analytics DSL API cardinality

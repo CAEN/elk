@@ -1,0 +1,51 @@
+#+TITLE: Using Beaver to Collect Linux Software Logs from the CAEN Labs
+#+AUTHOR: Andrew Caird
+#+EMAIL: acaird@umich.edu
+#+OPTIONS: ':t H:3 \n:nil ^:{} author:t toc:nil
+#+CREATOR: Emacs 24.3.1 (Org mode 8.2.7b)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+#+BEGIN_HTML
+---
+layout: page
+title: Using Beaver to Collect Linux Software Logs from the CAEN Labs
+---
+#+END_HTML
+
+Beaver is a light-weight logfile shipping daemon written in Python.
+Wild beavers weigh about 20kg and chew through logs and drag them to a
+central location to build their dams; Beavers in Python consume about
+2MB of RAM and chew through logs to ship the data to a central
+location.
+
+* The CAEN Beaver Configuration
+
+#+BEGIN_SRC
+[beaver]
+format: raw
+sincedb_path: /var/run/beaver/beaver.sqlite
+logstash_version: 1
+fqdn: True
+tcp_host: linuxlog.engin.umich.edu
+tcp_port: 9999
+
+[/var/log/audit/audit.log]
+type: linux
+tags: caen
+add_field_env:product,CAEN_PRODUCT,edition,CAEN_edition
+#+END_SRC
+
+This configuration sends version 1 Logstash information that is newer
+than the state kept in ~/var/run/beaver/beaver.sqlite~ to
+~linuxlog.engin.umich.edu~ and augments the data from
+~/var/log/audit/audit.log~ with a Type of ~linux~, a Tag of ~caen~,
+and ~product~ and ~edition~ fields pulled from local environment
+variables.
+
+* Local Dictionary 						   :noexport:
+#  LocalWords:  Elasticsearch Logstash username Lucene Kibana Redis
+#  LocalWords:  analytics DSL API

@@ -1,0 +1,198 @@
+#+TITLE: Using Logstash to Collect Windows Software Logs from the CAEN Labs
+#+AUTHOR: Andrew Caird
+#+EMAIL: acaird@umich.edu
+#+OPTIONS: ':t H:3 \n:nil ^:{} author:t toc:nil
+#+CREATOR: Emacs 24.3.1 (Org mode 8.2.7b)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+#+BEGIN_HTML
+---
+layout: page
+title: Using Logstash to Collect Windows Software Logs from the CAEN Labs
+---
+#+END_HTML
+
+The Logstash Java program can run as a client or server; we run it as
+a client on about 1000 Windows computers in our student lab
+environment, each one sending data via Redis to the Elasticsearch
+servers.
+
+* The CAEN Windows Logstash Client Configuration
+
+  Enabling /Audit Process Creation on Success/ and /Audit Process
+  Termination on Success/ settings in the Group Policy to log those
+  events via the Windows Event log, where Logstash picks up those
+  entries using the configuration file below.
+
+  #+BEGIN_SRC
+
+input {
+    eventlog {
+        #logfile =>  ["Application", "Security", "System"]
+        logfile =>  ["Security"]
+        type => "winevent"
+        tags => [ "caen" ]
+    }
+}
+
+filter {
+           if [type] == "winevent" {
+
+            # parse fields on process creation events
+            if [EventCode] == 4688 {
+                mutate {
+                     add_field => [ "securityid", "%{[InsertionStrings][0]}"]
+                     add_field => [ "accountname", "%{[InsertionStrings][1]}"]
+                     add_field => [ "accountdomain", "%{[InsertionStrings][2]}"]
+                     add_field => [ "logonid", "%{[InsertionStrings][3]}"]
+                     add_field => [ "pid", "%{[InsertionStrings][4]}"]
+                     add_field => [ "processname", "%{[InsertionStrings][5]}"]
+                     add_field => [ "cmd", "%{[InsertionStrings][5]}"]
+                     add_field => [ "tokenelevationtype", "%{[InsertionStrings][6]}"]
+                     add_field => [ "ppid", "%{[InsertionStrings][7]}"]
+                }
+                grok { match => ["processname","%{GREEDYDATA}\\%{GREEDYDATA:exe}"]
+                    # for elapsed filter
+                    add_tag => [ "processCreation"]
+                }
+            }
+
+            # parse fields on process termination events
+            if [EventCode] == 4689 {
+                mutate {
+                     add_field => [ "securityid", "%{[InsertionStrings][0]}"]
+                     add_field => [ "accountname", "%{[InsertionStrings][1]}"]
+                     add_field => [ "accountdomain", "%{[InsertionStrings][2]}"]
+                     add_field => [ "logonid", "%{[InsertionStrings][3]}"]
+                     add_field => [ "exitstatus", "%{[InsertionStrings][4]}"]
+                     add_field => [ "pid", "%{[InsertionStrings][5]}"]
+                     add_field => [ "processname", "%{[InsertionStrings][6]}"]
+                     add_field => [ "cmd", "%{[InsertionStrings][6]}"]
+                }
+                grok { match => ["processname","%{GREEDYDATA}\\%{GREEDYDATA:exe}"]
+                    # for elapsed filter
+                    add_tag => [ "processTermination"]
+                }
+            }
+
+            # sundry cleanups
+            mutate {
+                # Fields with binary data choke the agent with
+                # errors a la "UndefinedConversionError ASCII-8BIT to UTF-8"
+                # Try to strip such fields
+                remove_field => [ "Data" ]
+
+                # Remove repetitive and noisy text fields
+                remove_field => [ "message", "Message" ]
+
+                # Not sure we really should do this, but it makes things tidy
+                remove_tag => [ "_grokparsefailure" ]
+            }
+
+            # convert parsed hex fields to decimal
+            if [pid] {
+                ruby {
+                    code => "event['pid'] = event['pid'].hex"
+                }
+            }
+            if [ppid] {
+                ruby {
+                    code => "event['ppid'] = event['ppid'].hex"
+                }
+            }
+            if [logonid] {
+                ruby {
+                    code => "event['logonid'] = event['logonid'].hex"
+                }
+            }
+            if [exitstatus] {
+                ruby {
+                    code => "event['exitstatus'] = event['exitstatus'].hex"
+                }
+            }
+
+            # slow down the flood - drop machine account events
+            if [host] and [accountname] {
+                ruby {
+                    code => "event.cancel if event['accountname'] == event['host']+'$'"
+                }
+            }
+
+            # if we have start/stop info, tag the termination event with the time
+            # 'elapsed' is a contrib filter
+            elapsed {
+                start_tag => "processCreation"
+                end_tag => "processTermination"
+                unique_id_field => "pid"
+                timeout => 14400 # 4 hours (default is 1800 seconds or 30 mins)
+                new_event_on_match => false # update existing events with tags and elapsed time
+            }
+
+            # pick up product (e.g. CLSE) and edition (e.g. 'instructional') from env vars if set
+            environment {
+                add_field_from_env => {
+                    "product" => "CAEN_PRODUCT"
+                    "edition" => "CAEN_edition"
+                }
+
+                # or add edition as a literal if necessary
+                #add_field => {
+                #    "product" => "product_literal"
+                #    "edition" => "edition_literal"
+                #}
+            }
+
+            # super duper filter to only pass two eventcodes
+            #if [EventCode] not in [4688,4689]  {
+            #     drop{}
+            #}
+        }
+}
+
+output {
+        if [type] == "winevent" {
+            # what you see in the console
+            stdout { codec => "json"}
+            #stdout { codec => "rubydebug"}
+
+            # to see what's getting shipped via a tailable file
+            #file { codec => "json" path => "json.log"}
+
+            # ship to hpc redis queue
+            #redis {
+            #    host => "10.164.7.7"
+            #    port => 6379
+
+            #    #batch => true # defaults to 50 with batch timeout of 5
+            #    #reconnect_interval => 35
+
+            #    # give redis more time
+            #    timeout => 30
+
+            #    # important type and key info
+            #    data_type => "list"
+            #    key => "logstash"
+            #}
+
+            # ship to tcp output like CLSE linux hosts
+            tcp {
+                host => "linuxlog.engin.umich.edu"
+                port => 9999
+                codec => "json_lines"
+                #mode => "client"
+                #reconnect_interval => 10
+                #workers => 1
+            }
+    }
+}
+  #+END_SRC
+
+
+
+* Local Dictionary 						   :noexport:
+#  LocalWords:  Elasticsearch Logstash username Lucene Kibana Redis
+#  LocalWords:  analytics DSL API
