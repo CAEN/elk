@@ -1,0 +1,87 @@
+---
+layout: page
+title: Using Kibana to See Data from Elasticsearch
+---
+
+<p>
+The Kibana interface lets you create charts and tables out of various
+pieces of data in Elasticsearch.  It also allows you to filter data
+into or out of the current set and query that data for specific terms
+or Booleaned<sup><a id="fnr.1" name="fnr.1" class="footref" href="#fn.1">1</a></sup> sets of terms.
+</p>
+
+
+<div class="figure">
+<p><img src="./images/kibana-software-windows.PNG" alt="kibana-software-windows.PNG" width="80%" />
+</p>
+<p><span class="figure-number">Figure 1:</span> Kibana Representation of Software Usage on one Windows Computer</p>
+</div>
+
+<p>
+On this screen you can see the ten most commonly launched binaries,
+with <code>sh.exe</code> as the most common.  (This particular Windows desktop
+computer is used by one of the CAEN staff and mostly for integration
+testing, and runs <code>git</code> commands a lot of the time, which is why you
+see this particular set of binaries being popular.)  The same &ldquo;Top 10&rdquo;
+data is shown in a pie chart.
+</p>
+
+<p>
+The list of &ldquo;Events Over Time&rdquo; shows how frequently programs are
+started in one hour increments.  The peak on this graph is just over
+500 binary launches in an hour at 4:00pm on 8/18.
+</p>
+
+<p>
+There is also a list of all of the binaries launched, by computer,
+person, process identifier, and (for processes that are ending) their
+elapsed time.
+</p>
+
+
+<div class="figure">
+<p><img src="./images/kibana-software-flux.PNG" alt="kibana-software-flux.PNG" width="80%" />
+</p>
+<p><span class="figure-number">Figure 2:</span> Kibana Representation of Software Usage on our HPC Cluster</p>
+</div>
+
+<p>
+The screen of the software usage data from the HPC cluster shows some
+similar information (top 10 executables, table of title details,
+frequency of launches) and two other pieces of information:
+</p>
+
+<dl class="org-dl">
+<dt> the source of the binary that was launched </dt><dd>this information is
+provided by <code>auditd</code> and indexed by Elasticsearch.  Because we
+install different types of software in different locations, we
+can get a sense of the types of software commonly used by
+looking at this
+</dd>
+<dt> the rate of change of software executions </dt><dd>the &ldquo;Change in Last
+Hour&rdquo; chart shows whether more or fewer binaries are being
+launched now than an hour ago.  In general, this is a useless
+statistic, but if you happen to be looking at the Kibana page
+and see a large increase in software being launched it may help
+you diagnose a problem or be alert to an impending problem on
+the file server that delivers the software.
+</dd>
+</dl>
+
+<p>
+Version 3 of Kibana doesn&rsquo;t support aggregations (similar to SQL
+<code>JOIN</code> statements), but Version 4 is predicted to, and aggregations
+are still possible using JSON-structured queries sent directly to the
+Elasticsearch servers.
+</p>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+
+<div class="footdef"><sup><a id="fn.1" name="fn.1" class="footnum" href="#fnr.1">1</a></sup> <p class="footpara">
+If that isn&rsquo;t a verb, it really should be.
+</p></div>
+
+
+</div>
+</div>

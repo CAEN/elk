@@ -1,0 +1,185 @@
+---
+layout: page
+title: Using Logstash to Collect Windows Software Logs from the CAEN Labs
+---
+
+<p>
+The Logstash Java program can run as a client or server; we run it as
+a client on about 1000 Windows computers in our student lab
+environment, each one sending data via Redis to the Elasticsearch
+servers.
+</p>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1">The CAEN Windows Logstash Client Configuration</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Enabling <i>Audit Process Creation on Success</i> and <i>Audit Process
+Termination on Success</i> settings in the Group Policy to log those
+events via the Windows Event log, where Logstash picks up those
+entries using the configuration file below.
+</p>
+
+<pre class="example">
+input {
+    eventlog {
+        #logfile =&gt;  ["Application", "Security", "System"]
+        logfile =&gt;  ["Security"]
+        type =&gt; "winevent"
+        tags =&gt; [ "caen" ]
+    }
+}
+
+filter {
+           if [type] == "winevent" {
+
+            # parse fields on process creation events
+            if [EventCode] == 4688 {
+                mutate {
+                     add_field =&gt; [ "securityid", "%{[InsertionStrings][0]}"]
+                     add_field =&gt; [ "accountname", "%{[InsertionStrings][1]}"]
+                     add_field =&gt; [ "accountdomain", "%{[InsertionStrings][2]}"]
+                     add_field =&gt; [ "logonid", "%{[InsertionStrings][3]}"]
+                     add_field =&gt; [ "pid", "%{[InsertionStrings][4]}"]
+                     add_field =&gt; [ "processname", "%{[InsertionStrings][5]}"]
+                     add_field =&gt; [ "cmd", "%{[InsertionStrings][5]}"]
+                     add_field =&gt; [ "tokenelevationtype", "%{[InsertionStrings][6]}"]
+                     add_field =&gt; [ "ppid", "%{[InsertionStrings][7]}"]
+                }
+                grok { match =&gt; ["processname","%{GREEDYDATA}\\%{GREEDYDATA:exe}"]
+                    # for elapsed filter
+                    add_tag =&gt; [ "processCreation"]
+                }
+            }
+
+            # parse fields on process termination events
+            if [EventCode] == 4689 {
+                mutate {
+                     add_field =&gt; [ "securityid", "%{[InsertionStrings][0]}"]
+                     add_field =&gt; [ "accountname", "%{[InsertionStrings][1]}"]
+                     add_field =&gt; [ "accountdomain", "%{[InsertionStrings][2]}"]
+                     add_field =&gt; [ "logonid", "%{[InsertionStrings][3]}"]
+                     add_field =&gt; [ "exitstatus", "%{[InsertionStrings][4]}"]
+                     add_field =&gt; [ "pid", "%{[InsertionStrings][5]}"]
+                     add_field =&gt; [ "processname", "%{[InsertionStrings][6]}"]
+                     add_field =&gt; [ "cmd", "%{[InsertionStrings][6]}"]
+                }
+                grok { match =&gt; ["processname","%{GREEDYDATA}\\%{GREEDYDATA:exe}"]
+                    # for elapsed filter
+                    add_tag =&gt; [ "processTermination"]
+                }
+            }
+
+            # sundry cleanups
+            mutate {
+                # Fields with binary data choke the agent with
+                # errors a la "UndefinedConversionError ASCII-8BIT to UTF-8"
+                # Try to strip such fields
+                remove_field =&gt; [ "Data" ]
+
+                # Remove repetitive and noisy text fields
+                remove_field =&gt; [ "message", "Message" ]
+
+                # Not sure we really should do this, but it makes things tidy
+                remove_tag =&gt; [ "_grokparsefailure" ]
+            }
+
+            # convert parsed hex fields to decimal
+            if [pid] {
+                ruby {
+                    code =&gt; "event['pid'] = event['pid'].hex"
+                }
+            }
+            if [ppid] {
+                ruby {
+                    code =&gt; "event['ppid'] = event['ppid'].hex"
+                }
+            }
+            if [logonid] {
+                ruby {
+                    code =&gt; "event['logonid'] = event['logonid'].hex"
+                }
+            }
+            if [exitstatus] {
+                ruby {
+                    code =&gt; "event['exitstatus'] = event['exitstatus'].hex"
+                }
+            }
+
+            # slow down the flood - drop machine account events
+            if [host] and [accountname] {
+                ruby {
+                    code =&gt; "event.cancel if event['accountname'] == event['host']+'$'"
+                }
+            }
+
+            # if we have start/stop info, tag the termination event with the time
+            # 'elapsed' is a contrib filter
+            elapsed {
+                start_tag =&gt; "processCreation"
+                end_tag =&gt; "processTermination"
+                unique_id_field =&gt; "pid"
+                timeout =&gt; 14400 # 4 hours (default is 1800 seconds or 30 mins)
+                new_event_on_match =&gt; false # update existing events with tags and elapsed time
+            }
+
+            # pick up product (e.g. CLSE) and edition (e.g. 'instructional') from env vars if set
+            environment {
+                add_field_from_env =&gt; {
+                    "product" =&gt; "CAEN_PRODUCT"
+                    "edition" =&gt; "CAEN_edition"
+                }
+
+                # or add edition as a literal if necessary
+                #add_field =&gt; {
+                #    "product" =&gt; "product_literal"
+                #    "edition" =&gt; "edition_literal"
+                #}
+            }
+
+            # super duper filter to only pass two eventcodes
+            #if [EventCode] not in [4688,4689]  {
+            #     drop{}
+            #}
+        }
+}
+
+output {
+        if [type] == "winevent" {
+            # what you see in the console
+            stdout { codec =&gt; "json"}
+            #stdout { codec =&gt; "rubydebug"}
+
+            # to see what's getting shipped via a tailable file
+            #file { codec =&gt; "json" path =&gt; "json.log"}
+
+            # ship to hpc redis queue
+            #redis {
+            #    host =&gt; "10.164.7.7"
+            #    port =&gt; 6379
+
+            #    #batch =&gt; true # defaults to 50 with batch timeout of 5
+            #    #reconnect_interval =&gt; 35
+
+            #    # give redis more time
+            #    timeout =&gt; 30
+
+            #    # important type and key info
+            #    data_type =&gt; "list"
+            #    key =&gt; "logstash"
+            #}
+
+            # ship to tcp output like CLSE linux hosts
+            tcp {
+                host =&gt; "linuxlog.engin.umich.edu"
+                port =&gt; 9999
+                codec =&gt; "json_lines"
+                #mode =&gt; "client"
+                #reconnect_interval =&gt; 10
+                #workers =&gt; 1
+            }
+    }
+}
+</pre>
+</div>
+</div>
