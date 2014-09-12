@@ -4,10 +4,13 @@ title: Pages
 header: Pages
 group: navigation
 ---
-{% include JB/setup %}
 
 <h2>All Pages</h2>
 <ul>
-{% assign pages_list = site.pages %}
-{% include JB/pages_list %}
+	<li><a href=index.org>Home</a></li>
+	<li><a href=linux-lab-beaver.org>Using Beaver to Collect Linux Software Logs from the CAEN Labs</a></li>
+	<li><a href=linux-hpc-logstash.org>Using Logstash to Collect Linux Software Logs from the HPC Cluster</a></li>
+	<li><a href=windows-lab-logstash.org>Using Logstash to Collect Windows Software Logs from the CAEN Labs</a></li>
+	<li><a href=kibana-examples.org>Using Kibana to See Data from Elasticsearch</a></li>
+	<li><a href=elasticsearch-queries.org>Using the REST API to See Data from Elasticsearch</a></li>
 </ul>
