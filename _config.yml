@@ -35,7 +35,7 @@ links:
     url: /windows-lab-logstash.html
   - title: Kibana Visualization
     url: /kibana-examples.html
-  - title: ES Queries
+  - title: Elasticsearch Queries
     url: /elasticsearch-queries.html
 
 # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
