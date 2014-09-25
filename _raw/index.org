@@ -104,8 +104,8 @@ installs, we hope to:
 * Other Uses of ELK at CAEN
 ** HPC Cluster
   We are also using ELK to aggregate logs from our high-performance
-  computing cluster.  We presented these results at MoabCon in 2014,
-  the recording of which is at
+  computing cluster.  [[http://www-personal.umich.edu/~msbritt/][Matt Britt]] presented these results at MoabCon in
+  2014, the recording of which is at
   [[https://www.youtube.com/watch?v=JRvZk9Jk54M]].
   #+BEGIN_HTML
   <iframe width="560" height="315" src="//www.youtube.com/embed/JRvZk9Jk54M" frameborder="0" allowfullscreen></iframe>
