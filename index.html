@@ -153,8 +153,15 @@ After deploying software logging to the CAEN Lab computers running
 Windows we noticed one computer launching AutoCad over and over
 again with great frequency.
 </p>
+
+
+<div class="figure">
+<p><img src="./images/elk-anomaly.png" alt="elk-anomaly.png" width="80%" />
+</p>
+<p><span class="figure-number">Figure 1:</span> An excessive number of launches of AutoCAD</p>
+</div>
+
 <p>
-<img src="./images/elk-anomaly.png" alt="elk-anomaly.png" width="80%" />
 Upon further investigation the logout process for the last user of
 that lab computer didn&rsquo;t complete and AutoCAD kept trying to
 relaunch.
@@ -179,7 +186,7 @@ can see places where people are transferring data.
 <div class="figure">
 <p><img src="./images/kibana-globus-map.png" alt="kibana-globus-map.png" width="80%" />
 </p>
-<p><span class="figure-number">Figure 1:</span> Where data is being transferred</p>
+<p><span class="figure-number">Figure 2:</span> Where data is being transferred</p>
 </div>
 
 <p>
@@ -192,7 +199,7 @@ Globus over <code>sftp</code>?  why not leave the data on the cluster?).
 <div class="figure">
 <p><img src="./images/kibana-globus-map-last1000.png" alt="kibana-globus-map-last1000.png" width="80%" />
 </p>
-<p><span class="figure-number">Figure 2:</span> The last 1000 Globus transfers</p>
+<p><span class="figure-number">Figure 3:</span> The last 1000 Globus transfers</p>
 </div>
 </div>
 </div>
