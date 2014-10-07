@@ -110,6 +110,22 @@ installs, we hope to:
   #+BEGIN_HTML
   <iframe width="560" height="315" src="//www.youtube.com/embed/JRvZk9Jk54M" frameborder="0" allowfullscreen></iframe>
   #+END_HTML
+** Anomaly Detection
+   We are starting to use ELK for some simple anomaly detection.
+   After deploying software logging to the CAEN Lab computers running
+   Windows we noticed one computer launching AutoCad over and over
+   again with great frequency.
+   #+CAPTION: An excessive number of launches of AutoCAD
+   #+ATTR_HTML: :width 80%
+   [[./images/elk-anomaly.png]]
+   Upon further investigation the logout process for the last user of
+   that lab computer didn't complete and AutoCAD kept trying to
+   relaunch.
+
+   We haven't automated any anomoly detection, but are looking into
+   it.  The O'Reilly article [[http://radar.oreilly.com/2013/08/anomalies-and-patterns-in-machine-data.html][Surfacing anomalies and patterns in
+   Machine Data]] is one example of what is available.
+
 * Local Dictionary 						   :noexport:
 #  LocalWords:  Elasticsearch Logstash username Lucene Kibana Redis
 #  LocalWords:  analytics DSL API
