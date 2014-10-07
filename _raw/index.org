@@ -126,6 +126,22 @@ installs, we hope to:
    it.  The O'Reilly article [[http://radar.oreilly.com/2013/08/anomalies-and-patterns-in-machine-data.html][Surfacing anomalies and patterns in
    Machine Data]] is one example of what is available.
 
+** Geographic Data
+
+   We use ELK to store data on our [[https://www.globus.org/][Globus]]/GridFTP transfers, and we
+   can see places where people are transferring data.
+   #+CAPTION: Where data is being transferred
+   #+ATTR_HTML: :width 80%
+   [[./images/kibana-globus-map.png]]
+
+   ELK can also show us where the last 1000 transfers started or
+   ended.  Most of them are on campus, which is interesting and bears
+   further consideration (would a shared filesystem be better?  why
+   Globus over ~sftp~?  why not leave the data on the cluster?).
+   #+CAPTION: The last 1000 Globus transfers
+   #+ATTR_HTML: :width 80%
+   [[./images/kibana-globus-map-last1000.png]]
+
 * Local Dictionary 						   :noexport:
 #  LocalWords:  Elasticsearch Logstash username Lucene Kibana Redis
 #  LocalWords:  analytics DSL API
