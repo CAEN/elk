@@ -115,9 +115,11 @@ installs, we hope to:
    After deploying software logging to the CAEN Lab computers running
    Windows we noticed one computer launching AutoCad over and over
    again with great frequency.
+
    #+CAPTION: An excessive number of launches of AutoCAD
    #+ATTR_HTML: :width 80%
    [[./images/elk-anomaly.png]]
+
    Upon further investigation the logout process for the last user of
    that lab computer didn't complete and AutoCAD kept trying to
    relaunch.
