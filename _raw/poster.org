@@ -1,0 +1,38 @@
+#+TITLE: EITC 2014 Poster
+#+AUTHOR: Andrew Caird
+#+EMAIL: acaird@umich.edu
+#+OPTIONS: ':t H:3 \n:nil ^:{} author:t toc:nil
+#+CREATOR: Emacs 24.3.1 (Org mode 8.2.7b)
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+#+BEGIN_HTML
+---
+layout: page
+title: EITC 2014 Poster
+---
+#+END_HTML
+
+#+BEGIN_HTML
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-55726337-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+#+END_HTML
+
+#+CAPTION: Poster from the EITC2014 Meeting
+#+ATTR_HTML: :width 80%
+[[./images/umich-LogAnalysis-EITC2014.svg]]
+
+
+The PDF of the poster from the EITC Meeting at Michigan State
+University is here: [[./images/umich-LogAnalysis-EITC2014.pdf][umich-LogAnalysis-EITC2014.pdf]].
