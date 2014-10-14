@@ -31,7 +31,7 @@ installs, we hope to:
  - correlate titles with courses, and try to suggest that similar
    courses use the same software to minimize what the students have to
    learn, the instructors have to teach, and CAEN has to support
- - make purchasing and labor decisions based on more than just an
+f - make purchasing and labor decisions based on more than just an
    educated guess
 
 * ELK
@@ -43,7 +43,10 @@ installs, we hope to:
     query DSL via a REST API
   - Logstash converts logs to JSON according to your rules and ships
     them to Elasticsearch
-  - Kibana is a real-time visualization engine for Elastic- search
+  - Kibana is a real-time visualization engine for Elasticsearch
+
+  A great place to start with ELK is
+  [[http://logstash.net/docs/1.4.2/tutorials/getting-started-with-logstash]].
 
   We also use the [[http://beaver.readthedocs.org/][Beaver Python daemon]] to ship logs to Logstash from
   the Linux Lab computers.
