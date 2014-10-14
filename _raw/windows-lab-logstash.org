@@ -16,6 +16,19 @@ title: Using Logstash to Collect Windows Software Logs from the CAEN Labs
 ---
 #+END_HTML
 
+#+BEGIN_HTML
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-55726337-1', 'auto');
+  ga('send', 'pageview');
+
+</script>
+#+END_HTML
+
 The Logstash Java program can run as a client or server; we run it as
 a client on about 1000 Windows computers in our student lab
 environment, each one sending data via Redis to the Elasticsearch
