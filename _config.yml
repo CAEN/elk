@@ -37,6 +37,8 @@ links:
     url: /kibana-examples.html
   - title: Elasticsearch Queries
     url: /elasticsearch-queries.html
+  - title: EITC2014 Poster
+    url: /poster.html
 
 # http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 timezone:    America/New_York
