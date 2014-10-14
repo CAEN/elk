@@ -44,7 +44,7 @@ installs, we hope to:
  - correlate titles with courses, and try to suggest that similar
    courses use the same software to minimize what the students have to
    learn, the instructors have to teach, and CAEN has to support
-f - make purchasing and labor decisions based on more than just an
+ - make purchasing and labor decisions based on more than just an
    educated guess
 
 * ELK
